@@ -5,25 +5,35 @@ describe("creation phase", () => {
   const item = (qty: number): Item => ({ qty })
 
   // TODO  2: complete the sum type definition
-  // type OptionalItem = Invalid | Valid
-
-  // TODO  3: use OptionalItem as return type and remove throw
-  const parseItem = (qty: string): Item => {
-    if (qty.match(/^[0-9]+$/i)) return item(Number(qty))
-    else throw new Error("invalid item") // or return null | undefined
+  type OptionalItem = Invalid | Valid
+  type Valid = {
+    _tag: 'Valid',
+    value: Item
+  }
+  type Invalid = {
+    _tag: 'Invalid'
   }
 
-  test.skip("item creation", () => {
+  const valid = (item: Item): Valid => ({ _tag: 'Valid', value: item })
+  const invalid = (): Invalid => ({ _tag: 'Invalid' })
+
+  // TODO  3: use OptionalItem as return type and remove throw
+  const parseItem = (qty: string): OptionalItem => {
+    if (qty.match(/^[0-9]+$/i)) return valid(item(Number(qty)))
+    return invalid() // or return null | undefined
+  }
+
+  test("item creation", () => {
     const result = parseItem("10")
 
     // TODO  4: change test expectation
-    expect(result).toStrictEqual(item(10))
+    expect(result).toStrictEqual(valid(item(10)))
   })
 
-  test.skip.each(["asd", "1 0 0", ""])("invalid item creation", (x) => {
-    const result = () => parseItem(x)
+  test.each(["asd", "1 0 0", ""])("invalid item creation", (x) => {
+    const result = parseItem(x)
 
     // TODO  5: change test expectation
-    expect(result).toThrow()
+    expect(result).toStrictEqual(invalid())
   })
 })
