@@ -26,10 +26,10 @@ export const rover = (direction: Direction, position: Position): Rover => ({
   position,
 })
 export const position = (x: number, y: number): Position => ({ x, y })
-export const north = (): Direction => "n"
-export const south = (): Direction => "s"
-export const west = (): Direction => "w"
-export const east = (): Direction => "e"
+export const north = () => "n" as const
+export const south = () => "s" as const
+export const west = () => "w" as const
+export const east = () => "e" as const
 export const planet = (size: Size, obstacles: Obstacle[]): Planet => ({
   size,
   obstacles,
@@ -50,25 +50,31 @@ export const executeAll = (
   rover: Rover,
   commands: Commands,
 ): Rover => {
-  throw new Error("TODO")
+  return commands.reduce(execute(planet), rover)
 }
 
 // TODO 3: Dispatch each command to the specific function
 export const execute =
   (planet: Planet) =>
   (rover: Rover, command: Command): Rover => {
-    throw new Error("TODO")
+    return match(command)
+    .with('f', () => moveForward(planet, rover))
+    .with('b', () => moveBackward(planet, rover))
+    .with('l', () => turnLeft(rover))
+    .with('r', () => turnRight(rover))
+    .exhaustive()
   }
+
 
 // TODO 4: Change rover direction
 const turnRight = (rover: Rover): Rover => ({
   ...rover,
   direction:
     match(rover.direction)
-    .with('n', () => east())
-    .with('e', () => south())
-    .with('s', () => west())
-    .with('w', () => north())
+    .with(north(), () => east())
+    .with(east(), () => south())
+    .with(south(), () => west())
+    .with(west(), () => north())
     .exhaustive()
 })
 
