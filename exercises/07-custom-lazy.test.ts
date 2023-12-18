@@ -8,7 +8,7 @@ describe("custom lazy monad", () => {
     logs = []
   })
 
-  const log: (l: string) => void = (l) => (logs = [...logs, l])
+  const log: (l: string) => /*void = (l) =>*/ (logs = [...logs, l])
 
   const increment: (x: number) => number = (x) => {
     log("increment")
@@ -20,14 +20,14 @@ describe("custom lazy monad", () => {
     return of(x.toString().split("").reverse().join(""))
   }
 
-  test.skip("creation phase", () => {
+  test("creation phase", () => {
     // TODO  2: implement 'of' function
     const result = of(10)
 
     expect(result()).toStrictEqual(10)
   })
 
-  test.skip("combination phase - normal", () => {
+  test("combination phase - normal", () => {
     // TODO  3: implement 'map' function
     const result = pipe(of(10), map(increment))
 
@@ -36,7 +36,7 @@ describe("custom lazy monad", () => {
     expect(logs).toStrictEqual(["increment"])
   })
 
-  test.skip("combination phase - effectful", () => {
+  test("combination phase - effectful", () => {
     // TODO  4: implement 'flatMap' function
     const result = pipe(of(10), flatMap(reverseString))
 
@@ -45,7 +45,7 @@ describe("custom lazy monad", () => {
     expect(logs).toStrictEqual(["reverseString"])
   })
 
-  test.skip("removal phase - value", () => {
+  test("removal phase - value", () => {
     // TODO  5: implement 'fold' function
     const result = pipe(of(10), run())
 
@@ -53,7 +53,7 @@ describe("custom lazy monad", () => {
   })
 
   // TODO 6: remove skip marker and check if functor laws holds
-  describe.skip("functor laws", () => {
+  describe("functor laws", () => {
     test("identity: identities map to identities", () => {
       const result = pipe(of(10), map(identity))
       const expected = pipe(10, identity, of)
@@ -68,7 +68,7 @@ describe("custom lazy monad", () => {
   })
 
   // TODO 7: remove skip marker and check if monad laws holds
-  describe.skip("monad laws", () => {
+  describe("monad laws", () => {
     test("left identity", () => {
       const result = pipe(of(10), flatMap(reverseString))
       const expected = pipe(10, reverseString)
@@ -97,29 +97,25 @@ describe("custom lazy monad", () => {
   // constructors
   const of =
     <A>(a: A): Lazy<A> =>
-    () => {
-      throw new Error("TODO")
-    }
+    () => a
 
   // combiners
   const map =
     <A, B>(f: (a: A) => B) =>
     (fa: Lazy<A>): Lazy<B> =>
-    () => {
-      throw new Error("TODO")
-    }
+    () => f(run<A>()(fa))
 
   const flatMap =
     <A, B>(f: (a: A) => Lazy<B>) =>
     (fa: Lazy<A>): Lazy<B> =>
-    () => {
-      throw new Error("TODO")
-    }
+    () => pipe(
+      map(f)(fa),
+      run(),
+      run()
+    )
 
   // folders / runners
   const run =
     <A>() =>
-    (fa: Lazy<A>): A => {
-      throw new Error("TODO")
-    }
+    (fa: Lazy<A>): A => fa()
 })
