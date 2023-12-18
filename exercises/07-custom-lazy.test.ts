@@ -8,7 +8,7 @@ describe("custom lazy monad", () => {
     logs = []
   })
 
-  const log: (l: string) => /*void = (l) =>*/ (logs = [...logs, l])
+  const log: (l: string) => void = (l) => (logs = [...logs, l])
 
   const increment: (x: number) => number = (x) => {
     log("increment")
