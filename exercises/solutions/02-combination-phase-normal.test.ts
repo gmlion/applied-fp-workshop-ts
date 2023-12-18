@@ -2,7 +2,7 @@ import { pipe } from "fp-ts/function"
 import { Option } from "fp-ts/Option"
 import * as O from "fp-ts/Option"
 
-describe.skip("combination phase - normal", () => {
+describe("combination phase - normal", () => {
   type Item = Readonly<{ qty: number }>
 
   const item = (qty: number): Item => ({ qty })

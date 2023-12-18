@@ -1,7 +1,7 @@
 import { Option } from "fp-ts/Option"
 import * as O from "fp-ts/Option"
 
-describe.skip("creation phase", () => {
+describe("creation phase", () => {
   type Item = Readonly<{ qty: number }>
 
   const item = (qty: number): Item => ({ qty })

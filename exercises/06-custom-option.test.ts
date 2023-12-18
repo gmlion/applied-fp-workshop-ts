@@ -7,28 +7,28 @@ describe("custom option monad", () => {
   const reverseString: (x: number) => Option<string> = (x) =>
     some(x.toString().split("").reverse().join(""))
 
-  test.skip("creation phase", () => {
+  test("creation phase", () => {
     // TODO  2: implement 'of' function
     const result = of(10)
 
     expect(isSome(result)).toBeTruthy()
   })
 
-  test.skip("combination phase - normal", () => {
+  test("combination phase - normal", () => {
     // TODO  3: implement 'map' function
     const result = pipe(some(10), map(increment))
 
     expect(result).toStrictEqual(some(11))
   })
 
-  test.skip("combination phase - effectful", () => {
+  test("combination phase - effectful", () => {
     // TODO  4: implement 'flatMap' function
     const result = pipe(some(10), flatMap(reverseString))
 
     expect(result).toStrictEqual(some("01"))
   })
 
-  test.skip("removal phase - value", () => {
+  test("removal phase - value", () => {
     // TODO  5: implement 'fold' function
     const result = pipe(
       some(10),
@@ -41,7 +41,7 @@ describe("custom option monad", () => {
     expect(result).toStrictEqual("10")
   })
 
-  test.skip("removal phase - alternative value", () => {
+  test("removal phase - alternative value", () => {
     const result = pipe(
       none<string>(),
       fold(
@@ -54,7 +54,7 @@ describe("custom option monad", () => {
   })
 
   // TODO 6: remove skip marker and check if functor laws holds
-  describe.skip("functor laws", () => {
+  describe("functor laws", () => {
     test("identity: identities map to identities", () => {
       const result = pipe(some(10), map(identity))
       const expected = pipe(10, identity, some)
@@ -69,7 +69,7 @@ describe("custom option monad", () => {
   })
 
   // TODO 7: remove skip marker and check if monad laws holds
-  describe.skip("monad laws", () => {
+  describe("monad laws", () => {
     test("left identity", () => {
       const result = pipe(some(10), flatMap(reverseString))
       const expected = pipe(10, reverseString)
@@ -104,29 +104,41 @@ describe("custom option monad", () => {
   const some = <A>(a: A): Option<A> => ({ _tag: "Some", value: a })
 
   const of = <A>(a: A): Option<A> => {
-    throw new Error("TODO")
+    return some(a)
   }
 
   // utilities
-  const isSome = <A>(fa: Option<A>): boolean => fa._tag === "Some"
+  const isSome = <A>(fa: Option<A>): fa is Some<A> => fa._tag === "Some"
 
   // combiners
   const map =
     <A, B>(f: (a: A) => B) =>
     (fa: Option<A>): Option<B> => {
-      throw new Error("TODO")
+      if (isSome(fa)) {
+        return of(f(fa.value))
+      } else {
+        return fa
+      }
     }
 
   const flatMap =
     <A, B>(f: (a: A) => Option<B>) =>
     (fa: Option<A>): Option<B> => {
-      throw new Error("TODO")
+      if (isSome(fa)) {
+        return f(fa.value)
+      } else {
+        return fa
+      }
     }
 
   // folders / runners
   const fold =
     <A, B>(onNone: () => B, onSome: (a: A) => B) =>
     (fa: Option<A>): B => {
-      throw new Error("TODO")
+      if (isSome(fa)) {
+        return onSome(fa.value)
+      } else {
+        return onNone()
+      }
     }
 })

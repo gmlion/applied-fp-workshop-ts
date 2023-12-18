@@ -92,7 +92,10 @@ export const runApp = (
   inputRover: Tuple<string, string>,
   inputCommands: string,
 ): Either<ParseError, string> => {
-  throw new Error("TODO")
+  return pipe(
+    runMission(inputPlanet, inputRover, inputCommands),
+    E.map(renderComplete)
+  )
 }
 
 // TODO 4: executeAll with parsed planet, rover and commands
@@ -102,7 +105,12 @@ const runMission = (
   inputRover: Tuple<string, string>,
   inputCommands: string,
 ): Either<ParseError, Rover> => {
-  throw new Error("TODO")
+  return pipe(
+    E.of(executeAll),
+    E.ap(parsePlanet(inputPlanet)),
+    E.ap(parseRover(inputRover)),
+    E.ap(parseCommands(inputCommands))
+  )
 }
 
 // PARSING
@@ -113,14 +121,19 @@ const runMission = (
 export const parseCommands = (
   input: string,
 ): Either<ParseError, ReadonlyArray<Command>> => {
-  throw new Error("TODO")
+  return E.traverseArray(parseCommand)(input.split(""))
 }
 
 // TODO 6: parse string in a command or returns an error
 // HINT: creation phase
 // INPUT EXAMPLE: "B"
 export const parseCommand = (input: string): Either<ParseError, Command> => {
-  throw new Error("TODO")
+  return match(input)
+  .with("F", (_) => E.right("MoveForward" as const))
+  .with("B", (_) => E.right("MoveBackward" as const))
+  .with("L", (_) => E.right("TurnLeft" as const))
+  .with("R", (_) => E.right("TurnRight" as const))
+  .otherwise((v) => E.left(invalidCommand(new Error(`Invalid command: ${v}`))))
 }
 
 // TODO 7: parse the tuple in a rover
@@ -161,7 +174,11 @@ export const parsePlanet = (
 // HINT: combination phase normal...what abstraction is needed?
 // INPUT EXAMPLE: "5x4"
 export const parseSize = (input: string): Either<ParseError, Size> => {
-  throw new Error("TODO")
+  return pipe(
+    parseTuple("x", input),
+    E.map((t) => size(t.first)(t.second)),
+    E.mapLeft((e) => invalidSize(e))
+  )
 }
 
 // TODO 12: parse each string part in an obstacle

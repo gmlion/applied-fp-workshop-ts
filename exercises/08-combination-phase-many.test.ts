@@ -18,22 +18,29 @@ describe("combination phase - many", () => {
 
   // TODO  2: create an item only if name and quantity are valid
   const parseItem = (name: string, qty: string): Option<Item> => {
-    throw new Error("TODO")
+    const item = {name: checkName(name), qty: checkQty(qty)}
+    return pipe(
+      checkName(name),
+      O.flatMap((n) => pipe(
+        checkQty(qty),
+        O.map((qty) => ({name: n, qty: qty}))
+      ))
+    )
   }
 
-  test.skip("creation with valid parameters", () => {
+  test("creation with valid parameters", () => {
     const result = parseItem("foo", "100")
 
     expect(result).toStrictEqual(O.some({ name: "foo", qty: 100 }))
   })
 
-  test.skip("creation with invalid name", () => {
+  test("creation with invalid name", () => {
     const result = parseItem("", "100")
 
     expect(result).toStrictEqual(O.none)
   })
 
-  test.skip("creation with invalid quantity", () => {
+  test("creation with invalid quantity", () => {
     const result = parseItem("foo", "")
 
     expect(result).toStrictEqual(O.none)
