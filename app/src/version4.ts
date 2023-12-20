@@ -14,12 +14,13 @@
 
 import { Tuple, unsafeParse } from "../utils/tuple"
 import { match } from "ts-pattern"
-import { flip, pipe } from "fp-ts/function"
+import { flip, flow, pipe } from "fp-ts/function"
 import * as E from "fp-ts/Either"
 import { Either } from "fp-ts/Either"
 import { Task } from "fp-ts/Task"
 import * as TE from "fp-ts/TaskEither"
 import { TaskEither } from "fp-ts/TaskEither"
+import { loadTuple } from "../utils/infra-file"
 
 export type Rover = Readonly<{ position: Position; direction: Direction }>
 export type Position = Readonly<{ x: number; y: number }>
@@ -96,7 +97,12 @@ const invalidCommand = (e: Error): ParseError => ({
 // HINT: runMission returns TaskEither but runApp only Task
 // HINT: combine phase normal and then removal phase
 export const runApp = (pathPlanet: string, pathRover: string): Task<void> => {
-  throw new Error("TODO")
+  return pipe(
+    runMission(pathPlanet, pathRover),
+    TE.fold(writeMissionFailed,
+      E.fold(writeObstacleDetected, writeSequenceCompleted)
+    )
+  )
 }
 
 const runMission = (
@@ -119,7 +125,10 @@ const toError = (error: ParseError): Error => new Error(renderParseError(error))
 // HINT: combination phase effectful
 // HINT: align error and effect types
 export const loadPlanet = (path: string): TaskEither<Error, Planet> => {
-  throw new Error("TODO")
+  return pipe(
+    loadTuple(path),
+    TE.flatMap(flow(parsePlanet, E.mapLeft(toError),TE.fromEither))
+  )
 }
 
 // TODO 3: load file as tuple (see infra-file) and then parse to a planet

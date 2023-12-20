@@ -14,6 +14,7 @@ import { pipe } from "fp-ts/function"
 import * as E from "fp-ts/Either"
 import { Either } from "fp-ts/Either"
 import { Tuple, unsafeParse } from "../utils/tuple"
+import * as A from "fp-ts/Array"
 
 export type Rover = Readonly<{ position: Position; direction: Direction }>
 export type Position = Readonly<{ x: number; y: number }>
@@ -202,16 +203,21 @@ const executeAll =
   (planet: Planet) =>
   (rover: Rover) =>
   (commands: Commands): Rover =>
+    pipe(
+      commands,
+      A.foldLeft
+      E.ap)
+    )
     commands.reduce(execute(planet), rover)
 
 // TODO 5: fix the implementation in order to propagate the domain Either
 // HINT: lift pure values to align return types
 const execute =
   (planet: Planet) =>
-  (rover: Rover, command: Command): Rover =>
+  (rover: Rover, command: Command): Either<ObstacleDetected, Rover> =>
     match(command)
-      .with("TurnRight", () => turnRight(rover))
-      .with("TurnLeft", () => turnLeft(rover))
+      .with("TurnRight", () => E.of(turnRight(rover)))
+      .with("TurnLeft", () => E.of(turnLeft(rover)))
       .with("MoveForward", () => moveForward(planet, rover))
       .with("MoveBackward", () => moveBackward(planet, rover))
       .exhaustive()
@@ -240,16 +246,22 @@ const turnLeft = (rover: Rover): Rover => {
 
 // TODO 4: fix the implementation in order to propagate the domain Either
 // HINT: combination phase normal
-const moveForward = (planet: Planet, rover: Rover): Rover => {
+const moveForward = (planet: Planet, rover: Rover): Either<ObstacleDetected, Rover> => {
   const newPosition = next(planet, rover, delta(rover.direction))
-  return updateRover({ position: newPosition })(rover)
+  return pipe(
+    newPosition,
+    E.map((p) => updateRover({ position: p})(rover))
+  )
 }
 
 // TODO 3: fix the implementation in order to propagate the domain Either
 // HINT: combination phase normal
-const moveBackward = (planet: Planet, rover: Rover): Rover => {
+const moveBackward = (planet: Planet, rover: Rover): Either<ObstacleDetected, Rover> => {
   const newPosition = next(planet, rover, delta(opposite(rover.direction)))
-  return updateRover({ position: newPosition })(rover)
+  return pipe(
+    newPosition,
+    E.map((p) => updateRover({ position: p})(rover))
+  )
 }
 
 const opposite = (direction: Direction): Direction =>
@@ -270,21 +282,21 @@ const delta = (direction: Direction): Delta =>
 
 // TODO 2: change return type (follow result type) in the domain Either
 // HINT: the result should be either a Rover or ObstacleDetected
-const next = (planet: Planet, rover: Rover, delta: Delta): Position => {
+const next = (planet: Planet, rover: Rover, delta: Delta): Either<ObstacleDetected,Position> => {
   const newX = wrap(rover.position.x, planet.size.width, delta.x)
   const newY = wrap(rover.position.y, planet.size.height, delta.y)
   const candidate = position(newX)(newY)
 
-  return updatePosition(candidate)(rover.position)
+  //return updatePosition(candidate)(rover.position)
   // TODO 1: remove previous line and uncomment the following to produce a domain Either
   // HINT: get familiar with following code
-  // const hitObstacle = planet.obstacles.findIndex(
-  //   (x) => x.position.x == newX && x.position.y == newY,
-  // )
-  //
-  // return hitObstacle != -1
-  //   ? E.left(rover)
-  //   : E.right(updatePosition(candidate)(position))
+  const hitObstacle = planet.obstacles.findIndex(
+    (x) => x.position.x == newX && x.position.y == newY,
+  )
+  
+  return hitObstacle != -1
+    ? E.left(rover)
+    : E.right(updatePosition(candidate)(rover.position))
 }
 
 const wrap = (value: number, limit: number, delta: number): number =>

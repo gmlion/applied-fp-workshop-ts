@@ -142,14 +142,24 @@ export const parseCommand = (input: string): Either<ParseError, Command> => {
 const parseRover = (
   input: Tuple<string, string>,
 ): Either<ParseError, Rover> => {
-  throw new Error("TODO")
+  return pipe(
+    E.of(rover),
+    E.ap(parsePosition(input.first)),
+    E.ap(parseDirection(input.second))
+  )
 }
 
 // TODO 8: first parse string in a tuple and then in a position
 // HINT: combination phase normal (Functor)
 // INPUT EXAMPLE: "2,0"
 export const parsePosition = (input: string): Either<ParseError, Position> => {
-  throw new Error("TODO")
+  const [x,y] = input.split(",")
+  const numberFromStr = (n?: string) => Number.isInteger(Number(n)) ? E.right(Number(n)) : E.left(invalidPosition(new Error("Coordinate is not a number")))
+  return pipe(
+    E.of(position),
+    E.ap(numberFromStr(x)),
+    E.ap(numberFromStr(y))
+  )
 }
 
 // TODO 9: parse string in a direction
@@ -158,7 +168,7 @@ export const parsePosition = (input: string): Either<ParseError, Position> => {
 export const parseDirection = (
   input: string,
 ): Either<ParseError, Direction> => {
-  throw new Error("TODO")
+  const isDirection = (c) => 
 }
 
 // TODO 10: parse tuple in a planet
